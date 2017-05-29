@@ -23,9 +23,10 @@
 ********************************************************************************/
 
 #include "Parser.h"
-#include "Geometry.h"
 #include "Shell.h"
-#include "MolecularOrbitals.h"
+#include "Density.h"
+#include "Geometry.h"
+#include "Orbitals.h"
 #include "ExcitedStates.h"
 
 
@@ -43,6 +44,9 @@ namespace Parser {
          bool parse(TextStream&);
 
       private:
+         QList<int> readIntegerArray(TextStream&, unsigned nTokens);
+         QList<double> readDoubleArray(TextStream&, unsigned nTokens);
+         QList<unsigned> readUnsignedArray(TextStream&, unsigned nTokens);
 
          struct GeomData {
                QList<unsigned> atomicNumbers;
@@ -51,31 +55,61 @@ namespace Parser {
                unsigned multiplicity;
          };
 
+         Data::Geometry* makeGeometry(GeomData const&);
+
          struct ShellData {
-               QList<int> shellTypes;
+               QList<int>      shellTypes;
                QList<unsigned> shellToAtom;
                QList<unsigned> shellPrimitives;
-               QList<double> exponents;
-               QList<double> contractionCoefficients;
-               QList<double> contractionCoefficientsSP;
+               QList<double>   exponents;
+               QList<double>   contractionCoefficients;
+               QList<double>   contractionCoefficientsSP;
          };
 
-         struct MoData {
-            unsigned nAlpha;
-            unsigned nBeta;
+         bool dataAreConsistent(ShellData const&, unsigned const nAtoms);
+         Data::ShellList* makeShellList(ShellData const&, Data::Geometry const& geometry);
+
+         struct OrbitalData {
+            Data::Orbitals::OrbitalType orbitalType;
+            int stateIndex;
+            QString label;
+
             QList<double> alphaCoefficients;
             QList<double> betaCoefficients;
             QList<double> alphaEnergies;
             QList<double> betaEnergies;
-            Data::MolecularOrbitals::OrbitalType orbitalType;
-	    int whichState;
-	    QString stateTag;
          };
 
-         struct GmoData {
+         void clear(OrbitalData&);
+         Data::Orbitals* makeOrbitals(unsigned const nAlpha, unsigned const nBeta,
+            OrbitalData const&, ShellData const&, Data::Geometry const&,
+            Data::DensityList densities = Data::DensityList()); 
+
+
+// DEPRECATE
+/*
+         struct MoData {
+            QString  label;
             unsigned nAlpha;
             unsigned nBeta;
             unsigned nBasis;
+            QList<double> alphaCoefficients;
+            QList<double> betaCoefficients;
+            QList<double> alphaEnergies;
+            QList<double> betaEnergies;
+	    
+            int stateNumber;
+            QString stateTag;
+            Data::Orbitals::OrbitalType orbitalType;
+         };
+
+         void clear(MoData&);
+         Data::MolecularOrbitals* makeMolecularOrbitals(unsigned const nAlpha, 
+            unsigned const nBeta, MoData const&, ShellData const&, Data::Geometry const&);
+*/
+// END DEPRECATE
+
+         struct GmoData {
             QList<double> alphaCoefficients;
             QList<double> betaCoefficients;
             QList<double> geminalEnergies;
@@ -83,6 +117,10 @@ namespace Parser {
             QList<int>    geminalMoMap;
          };
 
+         void clear(GmoData&);
+         Data::GeminalOrbitals* makeGeminalOrbitals(unsigned const nAlpha, 
+            unsigned const nBeta, GmoData const&, ShellData const&, Data::Geometry const&);
+            
          struct ExtData {
            unsigned nState;
            Data::ExcitedStates::ExcitedStatesT extType;
@@ -92,31 +130,15 @@ namespace Parser {
            QList<double> alphaYAmplitudes;
            QList<double> betaAmplitudes;
            QList<double> betaYAmplitudes;
-           QList<int> alphaSparseJ;
-           QList<int> alphaSparseI;
-           QList<int> betaSparseJ;
-           QList<int> betaSparseI;
+           QList<int>    alphaSparseJ;
+           QList<int>    alphaSparseI;
+           QList<int>    betaSparseJ;
+           QList<int>    betaSparseI;
          };
 
-         void clear(MoData&);
-         void clear(GmoData&);
          void clear(ExtData&);
-
-
-         QList<int> readIntegerArray(TextStream&, unsigned nTokens);
-         QList<double> readDoubleArray(TextStream&, unsigned nTokens);
-         QList<unsigned> readUnsignedArray(TextStream&, unsigned nTokens);
-
-         Data::MolecularOrbitals* makeMolecularOrbitals(MoData const&, ShellData const&,
-            Data::Geometry const&);
-         Data::GeminalOrbitals* makeGeminalOrbitals(GmoData const&, ShellData const&,
-            Data::Geometry const&);
-         Data::ShellList* makeShellList(ShellData const&, Data::Geometry const& geometry);
-         Data::Geometry* makeGeometry(GeomData const&);
-
-         bool dataAreConsistent(ShellData const&, unsigned const nAtoms);
-
-         bool installExcitedStates(ExtData &extData, MoData const& moData);
+         bool installExcitedStates(unsigned const nAlpha, unsigned const nBeta, 
+            ExtData &extData, OrbitalData const&);
    };
 
 } } // end namespace IQmol::Parser

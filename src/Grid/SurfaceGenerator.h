@@ -1,3 +1,5 @@
+#ifndef IQMOL_GRID_SURFACEGENERATOR_H
+#define IQMOL_GRID_SURFACEGENERATOR_H
 /*******************************************************************************
          
   Copyright (C) 2011-2015 Andrew Gilbert
@@ -20,41 +22,38 @@
    
 ********************************************************************************/
 
-#include "BoundingBoxDialog.h"
-#include "MoleculeLayer.h"
-#include "Preferences.h"
-#include <QMenu>
-#include <QDebug>
+#include "Task.h"
 
-
-using namespace qglviewer;
 
 namespace IQmol {
 
-BoundingBoxDialog::BoundingBoxDialog(qglviewer::Vec* min, qglviewer::Vec* max, 
-   QWidget* parent) : QDialog(parent), m_min(min), m_max(max)
-{
-   m_dialog.setupUi(this);
-   connect(m_dialog.buttonBox, SIGNAL(accepted()), this, SLOT(copyToInput()));
-   copyFromInput();
+namespace Data {
+   class GridData;
+   class SurfaceInfo;
+   class Surface;
 }
 
-
-void BoundingBoxDialog::copyFromInput()
-{
-   m_dialog.xMin->setValue(m_min->x);
-   m_dialog.yMin->setValue(m_min->y);
-   m_dialog.zMin->setValue(m_min->z);
-   m_dialog.xMax->setValue(m_max->x);
-   m_dialog.yMax->setValue(m_max->y);
-   m_dialog.zMax->setValue(m_max->z);
-}
+namespace Grid {
 
 
-void BoundingBoxDialog::copyToInput()
-{
-   m_min->setValue(m_dialog.xMin->value(), m_dialog.yMin->value(), m_dialog.zMin->value());
-   m_max->setValue(m_dialog.xMax->value(), m_dialog.yMax->value(), m_dialog.zMax->value());
-}
+   class SurfaceGenerator : public Task {
 
-} // end namespace IQmol
+      Q_OBJECT
+
+      public:
+         SurfaceGenerator(Data::GridData const& grid, Data::SurfaceInfo const&);
+         
+         Data::Surface* getSurface() const;
+
+      protected:
+         void run();
+
+      private:
+         Data::GridData const&     m_grid;
+         Data::SurfaceInfo const&  m_surfaceInfo;
+         Data::Surface*            m_surface;
+   };
+
+} } // end namespace IQmol::Grid
+
+#endif

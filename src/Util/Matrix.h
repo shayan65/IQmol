@@ -26,6 +26,7 @@
 #include "boost/numeric/ublas/matrix_proxy.hpp"
 #include "boost/numeric/ublas/vector.hpp"
 #include "boost/multi_array.hpp"
+//#include <boost/serialization/serialization.hpp>
 
 #include <QStringList>
 
@@ -35,8 +36,17 @@ namespace IQmol {
 typedef boost::numeric::ublas::matrix<double>         Matrix;
 typedef boost::numeric::ublas::vector<double>         Vector;
 typedef boost::numeric::ublas::matrix_column<Matrix const> MatrixColumn;
+typedef boost::numeric::ublas::matrix_row<Matrix const> MatrixRow;
 typedef boost::multi_array<double, 3> Array3D;
 typedef boost::multi_array<double, 4> Array4D;
+
+template <size_t N>
+struct Array {
+    typedef boost::multi_array<double, N> type;
+};
+
+// Invoke:
+// Array<size_t>::type  myArray;
 
 QStringList PrintMatrix(Matrix const&, unsigned const columns = 6);
 QString PrintVector(Vector const&);

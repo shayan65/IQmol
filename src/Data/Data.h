@@ -55,6 +55,9 @@ namespace Data {
                 DipoleMoment,           VibrationalMode,        VibrationalModeList, 
                 PointGroup,
                 Frequencies,            MolecularOrbitals,      MolecularOrbitalsList,
+                Orbitals,               OrbitalsList,           LocalizedOrbitals, 
+                CanonicalOrbitals, 
+                Density,                DensityList,
                 Shell,                  ShellList,              Mesh,
                 MeshList,               Surface,                SurfaceList,
                 SurfaceInfo,            SurfaceInfoList,        SurfaceType, 
@@ -101,7 +104,7 @@ namespace Data {
          virtual void serialize(OutputArchive&, unsigned int const version = 0) = 0;
 
          /// This is only meant for debugging;
-		 virtual void dump() const { };
+		 virtual void dump() const = 0;
 
       protected:
          /// This should delete any resources owned by the data object.

@@ -189,6 +189,7 @@ void QChemJobInfo::dump() const
    QLOG_DEBUG() << "   RunFileName           " << get(RunFileName);
    QLOG_DEBUG() << "   LocalWorkingDirectory " << get(LocalWorkingDirectory);
    QLOG_DEBUG() << "   RemoteWorkingDirectory" << get(RemoteWorkingDirectory);
+   QLOG_DEBUG() << "   Molecule pointer      " << m_moleculePointer;
    JobInfo::dump();
 }
 

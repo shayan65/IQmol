@@ -3,7 +3,7 @@ CONFIG += lib
 include(../common.pri)
 
 INCLUDEPATH += ../Data ../Util ../Configurator ../Parser ../Process ../Main ../Viewer ../Old \
-               ../OpenMesh/src
+               ../OpenMesh/src ../Grid
      
 
 SOURCES = \
@@ -12,6 +12,7 @@ SOURCES = \
    $$PWD/AxesMeshLayer.C \
    $$PWD/BackgroundLayer.C \
    $$PWD/BondLayer.C \
+   $$PWD/CanonicalOrbitalsLayer.C \
    $$PWD/ChargeLayer.C \
    $$PWD/ClippingPlaneLayer.C \
    $$PWD/ConstraintLayer.C \
@@ -32,7 +33,9 @@ SOURCES = \
    $$PWD/LayerFactory.C \
    $$PWD/MoleculeLayer.C \
    $$PWD/MolecularOrbitalsLayer.C \
+   $$PWD/MolecularSurfacesLayer.C \
    $$PWD/NmrLayer.C \
+   $$PWD/OrbitalsLayer.C \
    $$PWD/PrimitiveLayer.C \
    $$PWD/SurfaceLayer.C \
 
@@ -43,6 +46,7 @@ HEADERS = \
    $$PWD/AxesMeshLayer.h \
    $$PWD/BackgroundLayer.h \
    $$PWD/BondLayer.h \
+   $$PWD/CanonicalOrbitalsLayer.h \
    $$PWD/ChargeLayer.h \
    $$PWD/ClippingPlaneLayer.h \
    $$PWD/ConstraintLayer.h \
@@ -65,6 +69,8 @@ HEADERS = \
    $$PWD/LayerFactory.h \
    $$PWD/MoleculeLayer.h \
    $$PWD/MolecularOrbitalsLayer.h \
+   $$PWD/MolecularSurfacesLayer.h \
    $$PWD/NmrLayer.h \
+   $$PWD/OrbitalsLayer.h \
    $$PWD/PrimitiveLayer.h \
    $$PWD/SurfaceLayer.h \

@@ -57,8 +57,7 @@
 #include <QInputDialog>
 #include <QRegExpValidator>
 
-#include <QDebug>
-
+#include "Debug.h"
 
 #define TAINT(t) (setTaint(t, __LINE__))
 

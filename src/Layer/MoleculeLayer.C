@@ -29,8 +29,6 @@
 #include "Frequencies.h"
 #include "Geometry.h"
 #include "GeometryList.h"
-#include "GridData.h"
-//#include "MolecularOrbitals.h"
 #include "MultipoleExpansion.h"
 #include "PointGroup.h"
 #include "SurfaceInfo.h"
@@ -48,22 +46,20 @@
 #include "EfpFragmentLayer.h"
 #include "GroupLayer.h"
 #include "MoleculeLayer.h"
-//#include "MolecularOrbitalsLayer.h"
+#include "MolecularOrbitalsLayer.h"
+#include "OrbitalsLayer.h"
 #include "SurfaceLayer.h"
 
 
 #include "UndoCommands.h"
 #include "SpatialProperty.h"
-#include "AtomicDensity.h"
-#include "MarchingCubes.h"
-#include "MeshDecimator.h"
 #include "Constants.h"
 #include "QsLog.h"
 #include "QMsgBox.h"
 #include "QChemJobInfo.h" 
 #include "ProgressDialog.h"
 #include "Preferences.h"
-#include "GridEvaluator.h"
+//#include "GridEvaluator.h"
 #include "IQmolParser.h"
 
 #include "openbabel/mol.h"
@@ -111,6 +107,7 @@ Molecule::Molecule(QObject* parent) : Base(DefaultMoleculeName, parent),
    m_scanList(this, "Scan Coordinates"), 
    m_groupList(this, "Groups"), 
    m_efpFragmentList(this),
+   m_molecularSurfaces(*this),
    m_currentGeometry(0), 
    m_chargeType(Data::Type::GasteigerCharge)
 {
@@ -123,9 +120,6 @@ Molecule::Molecule(QObject* parent) : Base(DefaultMoleculeName, parent),
    setCheckState(Qt::Checked);
    setConfigurator(&m_configurator);
 
-   connect(&m_configurator, SIGNAL(surfaceRequest(Data::SurfaceInfo const&)),
-      this, SLOT(surfaceRequest(Data::SurfaceInfo const&)));
-   
    // Okay, this is weird.  The OpenBabel plugins don't seem to get
    // initialized unless an OBConversion is used first.  This is a
    // problem if I try to use a force field before converting anything.
@@ -156,6 +150,7 @@ Molecule::Molecule(QObject* parent) : Base(DefaultMoleculeName, parent),
    connect(&m_efpFragmentList, SIGNAL(updated()), this, SIGNAL(softUpdate()));
    connect(&m_groupList, SIGNAL(updated()), this, SIGNAL(softUpdate()));
    connect(&m_surfaceList, SIGNAL(updated()), this, SIGNAL(softUpdate()));
+   connect(&m_molecularSurfaces, SIGNAL(updated()), this, SIGNAL(softUpdate()));
 }
 
 
@@ -201,14 +196,15 @@ void Molecule::appendData(Layer::List& list)
        labels << (*base)->text();
    }
 
-qDebug() << "appending layers";
    Layer::List::iterator iter;
    Files*        files(0);
    Atoms*        atoms(0);
    Bonds*        bonds(0);
    Charges*      charges(0);
    CubeData*     cubeData(0);
+   Orbitals*     orbitals(0);
    EfpFragments* efpFragments(0);
+   MolecularOrbitals* molecularOrbitals(0);
 
    QString text;
    PrimitiveList primitiveList;
@@ -228,6 +224,14 @@ qDebug() << "Layer text" << text;
               files->removeLayer(*file);
               m_fileList.appendLayer(*file);
           }
+
+       }else if ((molecularOrbitals = qobject_cast<MolecularOrbitals*>(*iter))) {
+          m_molecularSurfaces.appendLayer(molecularOrbitals);
+
+       }else if ((orbitals = qobject_cast<Orbitals*>(*iter))) {
+          m_molecularSurfaces.appendLayer(orbitals);
+          //toSet.append(*iter);
+          orbitals->setMolecule(this);
 
 // This is currently preventing the addition of primivees to an exisiting molecule
        }else if (!labels.contains(text)) {
@@ -1136,7 +1140,10 @@ void Molecule::appendPrimitives(PrimitiveList const& primitives)
    atoms = findLayers<Atom>(Children);
 
    if (atoms.size() > initialNumberOfAtoms) {
-      if (initialNumberOfAtoms == 0) insertRow(0,&m_info);
+      if (initialNumberOfAtoms == 0) { 
+         insertRow(0,&m_info);
+         appendRow(&m_molecularSurfaces);
+      }
       updateInfo();
       radius();
    }
@@ -1188,6 +1195,7 @@ void Molecule::takePrimitives(PrimitiveList const& primitives)
 
    if (atoms.isEmpty()) {
       takeRow(m_info.row());
+      takeRow(m_molecularSurfaces.row());
    }else if (atoms.size() < initialNumberOfAtoms) {
       updateInfo();
    }
@@ -1947,9 +1955,6 @@ void Molecule::rotateIntoPlane(Vec const& pt, Vec const& axis, Vec const& normal
 }
 
 
-
-
-
 // The following is essentially a wrapper around OBMol::FindChildren
 AtomList Molecule::getContiguousFragment(Atom* first, Atom* second)
 {
@@ -2378,8 +2383,6 @@ void Molecule::initProperties()
         << new PointChargePotential(Data::Type::ChelpgCharge, "ESP (CHELPG)", this);
    }
 
-
-
    if (m_currentGeometry->hasProperty<Data::MultipoleExpansionList>()) {
       Data::MultipoleExpansionList& dma(
          m_currentGeometry->getProperty<Data::MultipoleExpansionList>());
@@ -2432,32 +2435,6 @@ Function3D Molecule::getPropertyEvaluator(QString const& name)
 }
 
 
-void Molecule::surfaceRequest(Data::SurfaceInfo const& surfaceInfo)
-{
-   switch (surfaceInfo.type().kind()) {
-      case Data::SurfaceType::VanDerWaals:
-         calculateVanDerWaals(surfaceInfo);
-         break;
-
-      case Data::SurfaceType::Promolecule:
-         calculateSuperposition<AtomicDensity::AtomShellApproximation>(surfaceInfo);
-         break;
-
-      case Data::SurfaceType::SolventExcluded:
-         calculateVanDerWaals(surfaceInfo, true);
-         break;
-
-      case Data::SurfaceType::SID:
-         calculateSuperposition<AtomicDensity::SuperpositionIonicDensities>(surfaceInfo, true);
-         break;
-
-      default:
-         QLOG_WARN() << "Request for unknown molecule surface" <<  surfaceInfo.toString();
-         break;
-   }
-}
-
-
 void Molecule::appendSurface(Data::Surface* surfaceData)
 {
    m_bank.append(surfaceData);
@@ -2472,147 +2449,5 @@ qDebug() << "Need to check if surface needs to be oriented to the molecular fram
    updated();
 }
 
-
-template <class T>
-void Molecule::calculateSuperposition(Data::SurfaceInfo const& surfaceInfo, 
-   bool const includeCharges)
-{
-   QMap<int, T*> uniqueAtoms;;
-   QList<AtomicDensity::Base*> atomList;
-   QList<Vec> coordinates;
-   int atomicNumber;
-   T* atom(0);
-
-   AtomList atoms(findLayers<Atom>(Children));
-   AtomList::iterator iter;
-
-   for (iter = atoms.begin(); iter != atoms.end(); ++iter) {
-       atomicNumber = (*iter)->getAtomicNumber();
-
-       if (includeCharges) {
-          atom = new T(atomicNumber);
-          atom->setCharge((*iter)->getCharge());
-          uniqueAtoms.insert((*iter)->getIndex(), atom);
-       }else {
-          if (uniqueAtoms.contains(atomicNumber)) {
-             atom = uniqueAtoms[atomicNumber];
-          }else {
-             atom = new T(atomicNumber);
-             uniqueAtoms.insert(atomicNumber, atom);
-          }
-       }
-
-       coordinates.append( (*iter)->getPosition() );
-       atomList.append(atom); 
-   }
-
-   PromoleculeDensity rho("Superposition", atomList, coordinates);
-   
-   Vec min, max;
-   rho.boundingBox(min, max);
-
-   Data::GridSize gridSize(min, max, surfaceInfo.quality());
-   Data::GridData grid(gridSize, surfaceInfo.type());
-
-   GridEvaluator* gridEvaluator(new GridEvaluator(grid, rho.evaluator()));
-
-   QString title("Calculating density Data");
-   ProgressDialog dialog(title, *gridEvaluator);
-   dialog.show();
-
-   gridEvaluator->start();
-   gridEvaluator->wait();
-
-   MarchingCubes mc(grid);
-   Data::Surface* surfaceData(new Data::Surface(surfaceInfo));
-   mc.generateMesh(surfaceInfo.isovalue(), surfaceData->meshPositive());
-   if (surfaceInfo.simplifyMesh()) {
-      double delta(Data::GridSize::stepSize(surfaceInfo.quality()));
-      MeshDecimator decimator(surfaceData->meshPositive());
-      if (!decimator.decimate(delta)) {
-         QLOG_ERROR() << "Mesh decimation failed:" << decimator.error();
-      }
-   }
-
-   appendSurface(surfaceData);
-
-   delete gridEvaluator;
-
-   //Promolecule d'tor  deletes atoms... dodgy.
-   //QList<T*> ua(uniqueAtoms.values());
-   //for (int i = 0; i < ua.size(); ++i) {
-   //    delete ua[i];
-   //}
-}
-
-
-/*  This needs to be fixed so that the grid evaluation is threaded.
-void Molecule::gridEvaluatorFinished()
-{
-   GridEvaluator* gridEvaluator(qobject_cast<GridEvaluator*>(sender()));
-   if (!gridEvaluator) return;
-
-   if (gridEvaluator->status() == Task::Completed) {
-
-      surface->setSurfaceData(mc.generateSurface(surface->isovalue())); 
-      m_bank.append
-      m_surfaceList.appendLayer(surface);
-      updated();
-
-   }else {
-      QLOG_WARN() << "GridEvaluator returned status:" << gridEvaluator->status();
-   }
-
-   delete gridEvaluator;
-}
-*/
-
-
-void Molecule::calculateVanDerWaals(Data::SurfaceInfo const& surfaceInfo, 
-   bool const solventExcluded)
-{
-   double scale, solventRadius;
-
-   if (solventExcluded) {
-      scale = 1.0;
-      solventRadius = surfaceInfo.isovalue();
-   }else {
-      scale = surfaceInfo.isovalue();
-      solventRadius = 0.0;
-   }
-
-   QList<int> atomIndices;
-   QList<AtomicDensity::VanDerWaals*> vdwAtoms;
-   AtomicDensity::VanDerWaals* atom;
-
-   AtomList atoms(findLayers<Atom>(Children));
-   AtomList::iterator iter;
-
-
-   int i(0);
-   for (iter = atoms.begin(); iter != atoms.end(); ++iter, ++i) {
-       atom = new AtomicDensity::VanDerWaals( (*iter)->getAtomicNumber(), 
-                      (*iter)->getPosition(), scale, solventRadius);
-       vdwAtoms.append(atom);
-       //atomIndices.append(i);
-       atomIndices.append((*iter)->getAtomicNumber()-1);
-   }
-
-   Data::Surface* surfaceData = new Data::Surface(surfaceInfo);
-
-   i = 0;
-   QList<AtomicDensity::VanDerWaals*>::iterator iter2;
-   for (iter2 = vdwAtoms.begin(); iter2 != vdwAtoms.end(); ++iter2, ++i) {
-       Data::Mesh mesh((*iter2)->generateMesh(surfaceInfo.quality(), vdwAtoms));
-       mesh.setMeshIndex(atomIndices[i]);
-       surfaceData->meshPositive() += mesh;
-   }
-
-   appendSurface(surfaceData);
-
-   for (iter2 = vdwAtoms.begin(); iter2 != vdwAtoms.end(); ++iter2) {
-       delete (*iter2);
-   }
-}
 
 } } // end namespace IQmol::Layer

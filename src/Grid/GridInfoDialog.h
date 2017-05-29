@@ -1,5 +1,5 @@
-#ifndef IQMOL_GRIDEVALUATOR_H
-#define IQMOL_GRIDEVALUATOR_H
+#ifndef IQMOL_GRID_GRIDINFODIALOG_H
+#define IQMOL_GRID_GRIDINFODIALOG_H
 /*******************************************************************************
          
   Copyright (C) 2011-2015 Andrew Gilbert
@@ -22,28 +22,40 @@
    
 ********************************************************************************/
 
-#include "Task.h"
-#include "Function.h"
+#include "ui_GridInfoDialog.h"
+#include "GridData.h"
+#include <QPoint>
+
 
 namespace IQmol {
 
-   namespace Data {
-      class GridData;
-   }
-
-   class GridEvaluator : public Task {
+   class GridInfoDialog : public QDialog {
 
       Q_OBJECT
 
       public:
-         GridEvaluator(Data::GridData& grid, Function3D const& function);
+		 // We pass the molecule name and coordinates so that 
+		 // we can export a cube file if requested.
+         GridInfoDialog(Data::GridDataList*, QString const& moleculeName,
+            QStringList const& coordinates);
 
-      protected:
-         void run();
+      Q_SIGNALS:
+         void updated();  // to trigger a redraw
+
+      private Q_SLOTS:
+         void contextMenu(QPoint const&);
+         void deleteGrid();
+         void exportCubeFilePositive() { exportCubeFile(false); }
+         void exportCubeFileNegative() { exportCubeFile(true); }
 
       private:
-         Data::GridData& m_grid;
-         Function3D const& m_function;
+         void exportCubeFile(bool const invertSign);
+        Data::GridDataList* m_gridDataList;
+        QString m_moleculeName;
+        QStringList m_coordinates;
+        Data::GridDataList getSelectedGrids();
+        Ui::GridInfoDialog m_dialog;
+        void loadGridInfo();
    };
 
 } // end namespace IQmol

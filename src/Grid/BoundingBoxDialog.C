@@ -20,40 +20,37 @@
    
 ********************************************************************************/
 
-#include "GridEvaluator.h"
-#include "GridData.h"
+#include "BoundingBoxDialog.h"
 
+
+using namespace qglviewer;
 
 namespace IQmol {
 
-GridEvaluator::GridEvaluator(Data::GridData& grid, Function3D const& function) 
-  : m_grid(grid), m_function(function)
+BoundingBoxDialog::BoundingBoxDialog(qglviewer::Vec* min, qglviewer::Vec* max, 
+   QWidget* parent) : QDialog(parent), m_min(min), m_max(max)
 {
-   unsigned nx, ny, nz;
-   m_grid.getNumberOfPoints(nx, ny, nz);
-   m_totalProgress = nx;
+   m_dialog.setupUi(this);
+   connect(m_dialog.buttonBox, SIGNAL(accepted()), this, SLOT(copyToInput()));
+   copyFromInput();
 }
 
-void GridEvaluator::run()
+
+void BoundingBoxDialog::copyFromInput()
 {
-   unsigned nx, ny, nz;
-   m_grid.getNumberOfPoints(nx, ny, nz);
+   m_dialog.xMin->setValue(m_min->x);
+   m_dialog.yMin->setValue(m_min->y);
+   m_dialog.zMin->setValue(m_min->z);
+   m_dialog.xMax->setValue(m_max->x);
+   m_dialog.yMax->setValue(m_max->y);
+   m_dialog.zMax->setValue(m_max->z);
+}
 
-   qglviewer::Vec origin(m_grid.origin());
-   qglviewer::Vec delta(m_grid.delta());
 
-   double x(origin.x);
-   for (unsigned i = 0; i < nx; ++i, x += delta.x) {
-       double y(origin.y);
-       for (unsigned j = 0; j < ny; ++j, y += delta.y) {
-           double z(origin.z);
-           for (unsigned k = 0; k < nz; ++k, z += delta.z) {
-               m_grid(i, j, k) = m_function(x, y, z);
-           }
-       }
-       progress(i);
-       if (m_terminate) break;
-   }
+void BoundingBoxDialog::copyToInput()
+{
+   m_min->setValue(m_dialog.xMin->value(), m_dialog.yMin->value(), m_dialog.zMin->value());
+   m_max->setValue(m_dialog.xMax->value(), m_dialog.yMax->value(), m_dialog.zMax->value());
 }
 
 } // end namespace IQmol

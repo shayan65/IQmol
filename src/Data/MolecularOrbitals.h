@@ -22,72 +22,55 @@
 
 ********************************************************************************/
 
-#include "Matrix.h"
-#include "Shell.h"
+#include "Orbitals.h"
 #include "Surface.h"
+#include "Density.h"
 
 
 namespace IQmol {
 namespace Data {
 
    /// Data class for molecular orbital information
-   class MolecularOrbitals : public Base {
+   class MolecularOrbitals : public Orbitals {
 
       friend class boost::serialization::access;
 
       public:
-         enum OrbitalType { Undefined = 0, 
-                            Canonical, 
-                            Localized, 
-                            NaturalTransition, 
-                            NaturalBond 
-                          };
+         MolecularOrbitals() : Orbitals() { }
 
-         MolecularOrbitals() : m_orbitalType(Undefined) { }
-         MolecularOrbitals(OrbitalType const, unsigned const nAlpha, unsigned const nBeta, 
+         MolecularOrbitals(unsigned const nAlpha, unsigned const nBeta,
             QList<double> const& alphaCoefficients, QList<double> const& alphaEnergies,  
-            QList<double> const& betaCoefficients, QList<double> const& betaEnergies,
+            QList<double> const& betaCoefficients,  QList<double> const& betaEnergies,
             ShellList const& shells);
 
          Type::ID typeID() const { return Type::MolecularOrbitals; }
 
-         OrbitalType orbitalType() { return m_orbitalType; }
-         static QString toString(OrbitalType const);
-
-	 QString moTitle;
-	 void setOrbTitle(QString const& text){ moTitle = text; }
-
-         unsigned nAlpha() const { return m_nAlpha; }
-         unsigned nBeta()  const { return m_nBeta; }
-         unsigned nBasis() const { return m_nBasis; }
-         unsigned nOrbitals() const { return m_nOrbitals; }
-         bool     restricted() const { return m_restricted; }
-
-         void boundingBox(qglviewer::Vec& min, qglviewer::Vec& max) const 
-         {
-            min = m_bbMin;
-            max = m_bbMax;
-         }
-
-         Matrix const& alphaCoefficients() const { return m_alphaCoefficients; }
-         Matrix const& betaCoefficients() const { return m_betaCoefficients; }
-         ShellList const& shellList() const { return m_shellList; }
          SurfaceList& surfaceList() { return m_surfaceList; }
+
+         DensityList& densityList() { return m_densityList; }
 
          void appendSurface(Data::Surface* surfaceData)
          {
             m_surfaceList.append(surfaceData);
          }
 
+         void appendDensities(Data::DensityList densities)
+         {
+            m_densityList << densities;
+         }
+
          double alphaOrbitalEnergy(unsigned i) const 
          { 
-            return (i < m_nOrbitals) ? m_alphaEnergies[i] : 0.0;
+            return ((int)i < alphaEnergies().size()) ? alphaEnergies()[i] : 0.0;
          }
 
          double betaOrbitalEnergy(unsigned i) const 
          { 
-            return (i < m_nOrbitals) ? m_betaEnergies[i] : 0.0;
+            return ((int)i < betaEnergies().size()) ? betaEnergies()[i] : 0.0;
          }
+
+         QList<double> const& alphaEnergies() const;
+         QList<double> const& betaEnergies()  const;
 
          bool consistent() const;
 
@@ -107,41 +90,17 @@ namespace Data {
          template <class Archive>
          void privateSerialize(Archive& ar, unsigned const /* version */) 
          {
-            ar & m_orbitalType;
-            ar & m_nAlpha;
-            ar & m_nBeta;
-            ar & m_nBasis;
-            ar & m_nOrbitals;
-            ar & m_restricted;
-            ar & m_bbMin;
-            ar & m_bbMax;
-            ar & m_shellList;
+            ar & boost::serialization::base_object<Orbitals>(*this);
             ar & m_alphaEnergies;
             ar & m_betaEnergies;
-            ar & m_alphaCoefficients;
-            ar & m_betaCoefficients;
             ar & m_surfaceList;
          }
 
-         void computeBoundingBox();
-
-         unsigned m_nAlpha;
-         unsigned m_nBeta;
-         unsigned m_nBasis;
-         unsigned m_nOrbitals;
-         bool     m_restricted;
-
-         qglviewer::Vec m_bbMin;
-         qglviewer::Vec m_bbMax;
-
          QList<double> m_alphaEnergies;
          QList<double> m_betaEnergies;
-         Matrix m_alphaCoefficients;
-         Matrix m_betaCoefficients;
-         ShellList m_shellList;
-         OrbitalType m_orbitalType; 
-
          SurfaceList m_surfaceList;
+
+         Data::DensityList m_densityList;
    };
 
 } } // end namespace IQmol::Data

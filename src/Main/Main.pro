@@ -4,6 +4,7 @@ TARGET  = IQmol
 # This is redefined in common.pri, but for linux we need to worry about the
 # ordering of the libraries.
 
+
 BUILD_DIR  = $$PWD/../../build
 
 LIBS += $$BUILD_DIR/libQui.a \
@@ -17,13 +18,17 @@ LIBS += $$BUILD_DIR/libQui.a \
         $$BUILD_DIR/libYaml.a \
         $$BUILD_DIR/libPlot.a \
         $$BUILD_DIR/libOld.a \
-        $$BUILD_DIR/libUtil.a
+        $$BUILD_DIR/libGrid.a \
+        $$BUILD_DIR/libUtil.a \
 
 win32:  
 else:   LIBS += $$BUILD_DIR/libQGLViewer.a
 
+# Cannot get the embbed OpenMesh working under windows.
+!win32 {
 LIBS += $$PWD/../OpenMesh/lib/libOpenMeshCore.a \
         $$PWD/../OpenMesh/lib/libOpenMeshTools.a
+}
 
 include(../common.pri)
 
@@ -32,11 +37,16 @@ INCLUDEPATH += . ../Util ../Data ../Parser ../Qui ../Layer \
                 ../OpenMesh/src
 INCLUDEPATH += $$BUILD_DIR/Qui   # Required for the ui_QuiMainWindow.h header
 
+
+symmol.target = $$BUILD_DIR/symmol.o
+symmol.commands = gfortran -c $$PWD/symmol.f90 -o $$BUILD_DIR/symmol.o
+OBJECTS += $$BUILD_DIR/symmol.o
+QMAKE_EXTRA_TARGETS += symmol
+
 macx:FORMS       += $$PWD/PeriodicTableMac.ui
 win32:FORMS      += $$PWD/PeriodicTable.ui
 unix:!macx:FORMS += $$PWD/PeriodicTable.ui
 
-OBJECTS += $$PWD/symmol.o
 
 SOURCES += \
    $$PWD/FragmentTable.C \

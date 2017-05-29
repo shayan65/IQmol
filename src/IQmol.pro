@@ -12,18 +12,26 @@
 ######################################################################
 
 CONFIG  += ordered
-
 TEMPLATE = subdirs
 
-win32: SUBDIRS =
-else:  SUBDIRS = QGLViewer
 
-SUBDIRS += \
-           Util \
+win32: {
+   SUBDIRS += OpenBabel
+}
+
+macx: {
+   SUBDIRS = QGLViewer \
+             OpenMesh \
+             OpenMesh/src/OpenMesh/Core \
+             OpenMesh/src/OpenMesh/Tools \
+}
+
+SUBDIRS += Util \
            Data \
            Qui \
            Parser \
            Configurator \
+           Grid \
            Old \
            Layer \
            Network \

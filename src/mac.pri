@@ -1,32 +1,37 @@
 macx {
-   CONFIG += release
+   CONFIG += debug
+   #CONFIG += release
 
    # Boost
-   #BOOST        = /Users/iqmol/Dev/boost_1_58_0
-   #INCLUDEPATH += $${BOOST}
-   #LIBS        += $${BOOST}/stage/lib/libboost_iostreams.a
-   #LIBS        += $${BOOST}/stage/lib/libboost_serialization.a
-   #LIBS        += $${BOOST}/stage/lib/libboost_exception.a
-   BOOST        = /usr/local/opt/boost@1.57
-   INCLUDEPATH += $${BOOST}/include
-   LIBS        += $${BOOST}/lib/libboost_iostreams.a
-   LIBS        += $${BOOST}/lib/libboost_serialization.a
-   LIBS        += $${BOOST}/lib/libboost_exception.a
+   BOOST        = $(DEV)/boost_1_64_0
+   INCLUDEPATH += $${BOOST}
+   LIBS        += $${BOOST}/stage/lib/libboost_iostreams.a
+   LIBS        += $${BOOST}/stage/lib/libboost_serialization.a
+   LIBS        += $${BOOST}/stage/lib/libboost_exception.a
 
    # OpenBabel
-   OPENBABEL    = /Users/iqmol/Dev/openbabel-2.4.1
+   OPENBABEL    = $(DEV)/openbabel-2.4.1
    INCLUDEPATH += $${OPENBABEL}/include
    INCLUDEPATH += $${OPENBABEL}/build/include
    LIBS        += $${OPENBABEL}/build/src/libopenbabel.a
 
    # SSH2
-   INCLUDEPATH += /usr/local/include
-   LIBS        += /usr/local/lib/libssh2.a
+#  INCLUDEPATH += $(DEV)/extlib/include
+#  LIBS        += $(DEV)/extlib/lib/libssh2.a
 
    # libssl/libcrypto
-   INCLUDEPATH += /usr/local/include
-   LIBS        += /usr/local/lib/libssl.a 
-   LIBS        += /usr/local/lib/libcrypto.a
+#  INCLUDEPATH += $(DEV)/extlib/include
+#  LIBS        += $(DEV)/extlib/lib/libssl.a 
+#  LIBS        += $(DEV)/extlib/lib/libcrypto.a
+
+   # SSH2
+   INCLUDEPATH += $(DEV)/libssh2-1.8.0/include
+   LIBS        += $(DEV)/libssh2-1.8.0/build/src/libssh2.a
+
+   # libssl/libcrypto
+   INCLUDEPATH += $(DEV)/openssl/include
+   LIBS        += $(DEV)/openssl/libssl.a
+   LIBS        += $(DEV)/openssl/libcrypto.a
 
    # gfortran
    LIBS += /usr/local/gfortran/lib/libgfortran.a
@@ -38,7 +43,6 @@ macx {
    LIBS += -framework GLUT
    LIBS += -L/usr/lib -lz
 
-   QMAKE_LFLAGS   += -Wl,-no_compact_unwind
-   #QMAKE_LFLAGS   += -Wl,-no_compact_unwind -stdlib=libstdc++
+   QMAKE_LFLAGS   += -Wl,-no_compact_unwind -stdlib=libc++ 
    QMAKE_RPATHDIR += @executable_path/../Frameworks
 }

@@ -1,5 +1,5 @@
-#ifndef IQMOL_GRIDINFODIALOG_H
-#define IQMOL_GRIDINFODIALOG_H
+#ifndef IQMOL_GRID_BOUNDINGBOXDIALOG_H
+#define IQMOL_GRID_BOUNDINGBOXDIALOG_H
 /*******************************************************************************
          
   Copyright (C) 2011-2015 Andrew Gilbert
@@ -22,41 +22,33 @@
    
 ********************************************************************************/
 
-#include "ui_GridInfoDialog.h"
-#include "GridData.h"
-#include <QPoint>
+#include "ui_BoundingBoxDialog.h"
+#include "QGLViewer/vec.h"
 
 
 namespace IQmol {
 
 namespace Layer {
-   class Molecule;
+   class MolecularOrbitals;
 }
 
-   class GridInfoDialog : public QDialog {
+   class BoundingBoxDialog : public QDialog {
 
       Q_OBJECT
 
       public:
-         GridInfoDialog(Data::GridDataList*, Layer::Molecule*);
-
-      Q_SIGNALS:
-         void updated();  // to trigger a redraw
+         BoundingBoxDialog(qglviewer::Vec* min, qglviewer::Vec* max, QWidget* parent = 0);
 
       private Q_SLOTS:
-         void contextMenu(QPoint const&);
-         void deleteGrid();
-         void exportCubeFilePositive() { exportCubeFile(false); }
-         void exportCubeFileNegative() { exportCubeFile(true); }
+         void copyToInput();
+         void copyFromInput();
 
       private:
-         void exportCubeFile(bool const invertSign);
-        Data::GridDataList* m_gridDataList;
-        Layer::Molecule* m_molecule;
-        Data::GridDataList getSelectedGrids();
-        Ui::GridInfoDialog m_dialog;
-        void loadGridInfo();
+         Ui::BoundingBoxDialog m_dialog; 
+         qglviewer::Vec* m_min;
+         qglviewer::Vec* m_max;
    };
+
 
 } // end namespace IQmol
 

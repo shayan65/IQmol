@@ -28,25 +28,8 @@
 namespace IQmol {
 namespace Data {
 
-QString MolecularOrbitals::toString(OrbitalType const type)
-{
-   QString s;
-
-   switch (type) {
-      case Undefined:          s = "Undefined";                    break;
-      case Canonical:          s = "Canonical Orbitals";           break;
-      case Localized:          s = "Localized Orbitals";           break;
-      case NaturalTransition:  s = "Natural Transition Orbitals";  break;
-      case NaturalBond:        s = "Natural Bond Orbitals";        break;
-   }
-
-   return s;
-}
-
-
 
 MolecularOrbitals::MolecularOrbitals(
-   OrbitalType const type, 
    unsigned const nAlpha, 
    unsigned const nBeta, 
    QList<double> const& alphaCoefficients, 
@@ -54,50 +37,9 @@ MolecularOrbitals::MolecularOrbitals(
    QList<double> const& betaCoefficients, 
    QList<double> const& betaEnergies,
    ShellList const& shells) : 
-   m_orbitalType(type), m_nAlpha(nAlpha), m_nBeta(nBeta), m_alphaEnergies(alphaEnergies), 
-   m_betaEnergies(betaEnergies), m_shellList(shells)
+   Orbitals(Orbitals::Canonical, nAlpha, nBeta, shells, alphaCoefficients, betaCoefficients,
+   "Canonical MOs"), m_alphaEnergies(alphaEnergies),  m_betaEnergies(betaEnergies)
 {
-   m_nOrbitals = m_alphaEnergies.size();
-   QLOG_DEBUG() << "Number of alpha electrons :: " << m_nAlpha;
-   QLOG_DEBUG() << "Number of beta  electrons :: " << m_nBeta;
-   QLOG_DEBUG() << "Number of orbitals        :: " << m_nOrbitals;
-
-   if (m_nOrbitals == 0) return;
-
-   m_nBasis    = alphaCoefficients.size()/m_nOrbitals;
-   QLOG_DEBUG() << "Number of basis functions :: " << m_nBasis;
-   QLOG_DEBUG() << "Alpha MO coefficient size :: " << alphaCoefficients.size();
-   QLOG_DEBUG() << "Alpha MO energies    size :: " << alphaEnergies.size();
-   QLOG_DEBUG() << "Beta  MO coefficient size :: " << betaCoefficients.size();
-   QLOG_DEBUG() << "Beta  MO energies    size :: " << betaEnergies.size();
-
-   if (alphaCoefficients.size() != (int)m_nOrbitals*(int)m_nBasis ||
-       betaCoefficients.size()  != (int)m_nOrbitals*(int)m_nBasis) {
-       m_nOrbitals = 0;
-       QLOG_WARN() << "Inconsistent MO data" 
-                   << alphaCoefficients.size() << "!=" <<(int)m_nOrbitals*(int)m_nBasis
-                   << betaCoefficients.size()  << "!=" <<(int)m_nOrbitals*(int)m_nBasis;
-       return;
-   }
-
-   m_alphaCoefficients.resize(m_nOrbitals, m_nBasis);
-   unsigned ka(0);
-   for (unsigned i = 0; i < m_nOrbitals; ++i) {
-       for (unsigned j = 0; j < m_nBasis; ++j, ++ka) {
-           m_alphaCoefficients(i,j) = alphaCoefficients[ka];
-       }
-   }
- 
-   m_betaCoefficients.resize(m_nOrbitals, m_nBasis);
-   unsigned kb(0);
-   for (unsigned i = 0; i < m_nOrbitals; ++i) {
-       for (unsigned j = 0; j < m_nBasis; ++j, ++kb) {
-           m_betaCoefficients(i,j) = betaCoefficients[kb];
-       }
-   }
-
-   m_restricted = (m_nAlpha == m_nBeta) && (m_alphaEnergies == m_betaEnergies);
-   computeBoundingBox();
 }
 
 
@@ -105,12 +47,12 @@ bool MolecularOrbitals::consistent() const
 {
    bool ok(true);
    ok = ok && m_nOrbitals > 0;
-   if (m_orbitalType != NaturalTransition) {
+   if (orbitalType() != NaturalTransition) {
       ok = ok && m_nAlpha <= m_nOrbitals;
       ok = ok && m_nBeta  <= m_nOrbitals;
    }
-   ok = ok && m_alphaEnergies.size() == (int)m_nOrbitals;
-   ok = ok && m_betaEnergies.size()  == (int)m_nOrbitals;
+   ok = ok && alphaEnergies().size() == (int)m_nOrbitals;
+   ok = ok && betaEnergies().size()  == (int)m_nOrbitals;
 
    unsigned nBasis(0);
    ShellList::const_iterator iter;
@@ -124,60 +66,21 @@ bool MolecularOrbitals::consistent() const
 }
 
 
-void MolecularOrbitals::computeBoundingBox()
-{     
-   if (m_shellList.isEmpty()) return;
-   m_shellList[0]->boundingBox(m_bbMin, m_bbMax);
+QList<double> const& MolecularOrbitals::alphaEnergies() const
+{
+   return m_alphaEnergies;
+}
 
-   qglviewer::Vec tmin, tmax;
-   ShellList::const_iterator iter;
-   for (iter = m_shellList.begin(); iter != m_shellList.end(); ++iter) {
-       (*iter)->boundingBox(tmin, tmax);
-       m_bbMin.x = std::min(tmin.x, m_bbMin.x);
-       m_bbMin.y = std::min(tmin.y, m_bbMin.y);
-       m_bbMin.z = std::min(tmin.z, m_bbMin.z);
-       m_bbMax.x = std::max(tmax.x, m_bbMax.x);
-       m_bbMax.y = std::max(tmax.y, m_bbMax.y);
-       m_bbMax.z = std::max(tmax.z, m_bbMax.z);
-   }
+
+QList<double> const& MolecularOrbitals::betaEnergies() const
+{
+   return m_restricted ? m_alphaEnergies : m_betaEnergies;
 }
 
 
 void MolecularOrbitals::dump() const
 {
-   qDebug() << "There are  " << m_nAlpha << "alpha and" << m_nBeta << "beta electrons";
-   qDebug() << "There are  " << m_nBasis << "basis functions and" << m_nOrbitals << "orbitals";
-   qDebug() << "Restricted:" << m_restricted;
-   qDebug() << "There ares " << m_shellList.size() << "shells";
-
-   int s(0), p(0), d5(0), d6(0), f7(0), f10(0), g9(0), g15(0);
-
-   unsigned nBasis(0);
-   ShellList::const_iterator iter;
-   for (iter = m_shellList.begin(); iter != m_shellList.end(); ++iter) {
-       switch ((*iter)->angularMomentum()) {
-          case  Data::Shell::S:    ++s;    nBasis +=  1;  break;
-          case  Data::Shell::P:    ++p;    nBasis +=  3;  break;   
-          case  Data::Shell::D5:   ++d5;   nBasis +=  5;  break;
-          case  Data::Shell::D6:   ++d6;   nBasis +=  6;  break;   
-          case  Data::Shell::F7:   ++f7;   nBasis +=  7;  break;
-          case  Data::Shell::F10:  ++f10;  nBasis += 10;  break;   
-          case  Data::Shell::G9:   ++g9;   nBasis +=  9;  break;
-          case  Data::Shell::G15:  ++g15;  nBasis += 15;  break;   
-       }
-   }
-
-   QString check("OK");
-   if (nBasis != m_nBasis) check.prepend("NOT ");
-   qDebug() << "Basis function check:     " << check;
-
-   QString types("   S    P   D5   D6   F7  F10");
-   QString tally = QString("%1 %2 %3 %4 %5 %6").arg( s,4).arg( p,4).arg( d5,4)
-                                                  .arg(d6,4).arg(f7,4).arg(f10,4);
-   qDebug() << "Shell types:              " << types;
-   qDebug() << "                          " << tally;
-
-   //m_shellList.dump();
+   Orbitals::dump();
 
    SurfaceList::const_iterator surface;
    for (surface = m_surfaceList.begin(); surface != m_surfaceList.end(); ++surface) {

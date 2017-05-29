@@ -1,5 +1,5 @@
-#ifndef IQMOL_BOUNDINGBOXDIALOG_H
-#define IQMOL_BOUNDINGBOXDIALOG_H
+#ifndef IQMOL_CONFIGURATOR_MOLECULARSURFACES_H
+#define IQMOL_CONFIGURATOR_MOLECULARSURFACES_H
 /*******************************************************************************
          
   Copyright (C) 2011-2015 Andrew Gilbert
@@ -22,34 +22,43 @@
    
 ********************************************************************************/
 
-#include "ui_BoundingBoxDialog.h"
-#include "QGLViewer/vec.h"
+#include "Configurator.h"
+#include "ui_MolecularSurfacesConfigurator.h"
 
 
 namespace IQmol {
 
-namespace Layer {
-   class MolecularOrbitals;
+namespace Data {
+   class SurfaceInfo;
 }
 
-   class BoundingBoxDialog : public QDialog {
+namespace Configurator {
+
+   class MolecularSurfaces : public Base {
 
       Q_OBJECT
 
       public:
-         BoundingBoxDialog(qglviewer::Vec* min, qglviewer::Vec* max, QWidget* parent = 0);
+         MolecularSurfaces();
+
+      Q_SIGNALS:
+         void calculateSurface(Data::SurfaceInfo const&);
 
       private Q_SLOTS:
-         void copyToInput();
-         void copyFromInput();
+         void on_calculateButton_clicked(bool);
+         void on_cancelButton_clicked(bool);
+         void on_positiveColorButton_clicked(bool);
+         void on_negativeColorButton_clicked(bool);
+         void on_surfaceType_currentIndexChanged(int index);
 
       private:
-         Ui::BoundingBoxDialog m_dialog; 
-         qglviewer::Vec* m_min;
-         qglviewer::Vec* m_max;
+         void enableNegativeColor(bool);
+         void setPositiveColor(QColor const& color);
+         void setNegativeColor(QColor const& color);
+
+         Ui::MolecularSurfacesConfigurator m_configurator;
    };
 
-
-} // end namespace IQmol
+} } // End namespace IQmol::Configurator
 
 #endif

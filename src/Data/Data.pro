@@ -8,10 +8,12 @@ SOURCES = \
    $$PWD/Atom.C \
    $$PWD/AtomicProperty.C \
    $$PWD/Bank.C \
+   $$PWD/CanonicalOrbitals.C \
    $$PWD/ChargeMultiplicity.C \
    $$PWD/Constraint.C \
    $$PWD/Data.C \
    $$PWD/DataFactory.C \
+   $$PWD/Density.C \
    $$PWD/EfpFragment.C \
    $$PWD/EfpFragmentLibrary.C \
    $$PWD/ElectronicTransition.C \
@@ -32,11 +34,14 @@ SOURCES = \
    $$PWD/NmrData.C \
    $$PWD/NmrReference.C \
    $$PWD/NmrReferenceLibrary.C \
+   $$PWD/Orbitals.C \
+   $$PWD/OrbitalsList.C \
    $$PWD/OrbitalSymmetries.C \
    $$PWD/PointCharge.C \
    $$PWD/PovRay.C \
    $$PWD/RemSectionData.C \
    $$PWD/Shell.C \
+   $$PWD/ShellList.C \
    $$PWD/Surface.C \
    $$PWD/SurfaceInfo.C \
    $$PWD/SurfaceType.C \
@@ -47,12 +52,14 @@ HEADERS = \
    $$PWD/Atom.h \
    $$PWD/AtomicProperty.h \
    $$PWD/Bank.h \
+   $$PWD/CanonicalOrbitals.h \
    $$PWD/ChargeMultiplicity.h \
    $$PWD/Constraint.h \
    $$PWD/CubeData.h \
    $$PWD/Data.h \
    $$PWD/DataFactory.h \
    $$PWD/DataList.h \
+   $$PWD/Density.h \
    $$PWD/DipoleMoment.h \
    $$PWD/EfpFragment.h \
    $$PWD/EfpFragmentLibrary.h \
@@ -75,6 +82,8 @@ HEADERS = \
    $$PWD/NmrReference.C \
    $$PWD/NmrReference.h \
    $$PWD/NmrReferenceLibrary.h \
+   $$PWD/Orbitals.h \
+   $$PWD/OrbitalsList.h \
    $$PWD/OrbitalSymmetries.h \
    $$PWD/PointCharge.h \
    $$PWD/PointGroup.h \
@@ -82,6 +91,7 @@ HEADERS = \
    $$PWD/RemSectionData.h \
    $$PWD/Serialization.h \
    $$PWD/Shell.h \
+   $$PWD/ShellList.h \
    $$PWD/Surface.h \
    $$PWD/SurfaceInfo.h \
    $$PWD/SurfaceType.h \

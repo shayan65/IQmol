@@ -31,7 +31,7 @@ QString SurfaceType::toString() const
 {
    QString label;
    switch (m_kind) {
-      case Custom:                 label = "Custom";                  break;
+      case Custom:                 label = m_label;                   break;
       case AlphaOrbital:           label = "Alpha";                   break;
       case BetaOrbital:            label = "Beta";                    break;
       case TotalDensity:           label = "Total Density";           break;
@@ -47,11 +47,23 @@ QString SurfaceType::toString() const
       case ElectrostaticPotential: label = "Electrostatic Potential"; break;
       case Geminal:                label = "Geminal";                 break;
       case Correlation:            label = "Correlated Density";      break;
+      case CustomDensity:          label = "Custom Density";          break;
    }
 
    if (isIndexed()) label += " " + QString::number(m_index);
    return label;
 }
+
+
+bool SurfaceType::operator==(SurfaceType const& that) const
+{
+   bool same(m_kind == that.m_kind && m_index == that.m_index);
+   if (m_kind == Custom) same = same && m_label == that.m_label;
+
+   return same;
+}
+
+
 
 
 bool SurfaceType::isIndexed() const
@@ -73,6 +85,15 @@ bool SurfaceType::isDensity() const
           (m_kind == TotalDensity) || (m_kind == SpinDensity) ||
           (m_kind == DensityCombo) || (m_kind == Correlation);
 }
+
+
+bool SurfaceType::isRegularDensity() const
+{
+   return (m_kind == AlphaDensity) || (m_kind == BetaDensity) ||
+          (m_kind == TotalDensity) || (m_kind == SpinDensity);
+}
+
+
 
 
 bool SurfaceType::isSigned() const

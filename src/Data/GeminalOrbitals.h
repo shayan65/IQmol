@@ -24,6 +24,7 @@
 
 #include "Matrix.h"
 #include "Shell.h"
+#include "ShellList.h"
 #include "Surface.h"
 
 
@@ -53,7 +54,7 @@ namespace Data {
 
          double geminalOrbitalEnergy(unsigned i) const 
          { 
-            return (i < m_geminalEnergies.length()) ? m_geminalEnergies[i] : 0.0;
+            return ((int)i < m_geminalEnergies.length()) ? m_geminalEnergies[i] : 0.0;
          }
 
          void boundingBox(qglviewer::Vec& min, qglviewer::Vec& max) const 

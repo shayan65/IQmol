@@ -2,7 +2,8 @@ LIB = Configurator
 CONFIG += lib
 include(../common.pri)
 
-INCLUDEPATH += ../Layer ../Data ../Util ../Plot ../Viewer ../Main ../Old ../OpenMesh/src
+INCLUDEPATH += ../Layer ../Data ../Util ../Plot ../Viewer \
+               ../Main ../Grid ../Old ../OpenMesh/src
 
 SOURCES = \
    $$PWD/AxesMeshConfigurator.C \
@@ -20,7 +21,9 @@ SOURCES = \
    $$PWD/InfoConfigurator.C \
    $$PWD/MoleculeConfigurator.C \
    $$PWD/MolecularOrbitalsConfigurator.C \
+   $$PWD/MolecularSurfacesConfigurator.C \
    $$PWD/NmrConfigurator.C \
+   $$PWD/OrbitalsConfigurator.C \
    $$PWD/SurfaceConfigurator.C
 
 HEADERS = \
@@ -40,7 +43,9 @@ HEADERS = \
    $$PWD/InfoConfigurator.h \
    $$PWD/MoleculeConfigurator.h \
    $$PWD/MolecularOrbitalsConfigurator.h \
+   $$PWD/MolecularSurfacesConfigurator.h \
    $$PWD/NmrConfigurator.h \
+   $$PWD/OrbitalsConfigurator.h \
    $$PWD/SurfaceConfigurator.h
 
 FORMS = \
@@ -58,7 +63,9 @@ FORMS = \
    $$PWD/InfoConfigurator.ui \
    $$PWD/MoleculeConfigurator.ui \
    $$PWD/MolecularOrbitalsConfigurator.ui \
+   $$PWD/MolecularSurfacesConfigurator.ui \
    $$PWD/NmrConfigurator.ui \
+   $$PWD/OrbitalsConfigurator.ui \
    $$PWD/ScalarConstraintConfigurator.ui \
    $$PWD/SurfaceConfigurator.ui \
    $$PWD/VectorConstraintConfigurator.ui \
