@@ -21,9 +21,9 @@ win32: {
 
 unix: {
    SUBDIRS = QGLViewer \
-             OpenMesh \
-             OpenMesh/src/OpenMesh/Core \
-             OpenMesh/src/OpenMesh/Tools \
+#            OpenMesh \
+#            OpenMesh/src/OpenMesh/Core \
+#            OpenMesh/src/OpenMesh/Tools \
 }
 
 SUBDIRS += Util \
